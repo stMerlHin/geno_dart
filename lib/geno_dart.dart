@@ -4,5 +4,6 @@
 library geno_dart;
 
 export 'src/geno_dart_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/model/user.dart';
+export 'src/auth.dart';
+export 'src/constants.dart';
