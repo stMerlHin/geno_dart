@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:geno_dart/geno_dart.dart';
 import 'package:geno_dart/src/tools.dart';
+import 'package:http/http.dart' as http;
 
-import 'model/user.dart';
+import 'model/result.dart';
 
 class Auth {
 
@@ -33,6 +33,128 @@ class Auth {
     }
   }
 
+  Future loginWithPhoneNumber({
+    required String phoneNumber,
+    required Function(String) onSuccess,
+    required Function(String) onError,
+}) async {
+    final url = Uri.parse(Geno.getPhoneAuthUrl());
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserPhoneNumber: phoneNumber,
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.error);
+        } else {
+          User user = User(
+              uid: result.data[gUserUId],
+              phoneNumber: phoneNumber,
+              mode: AuthenticationMode.phoneNumber
+          );
+          _preferences.putAll(user.toMap());
+          onSuccess(result.data[gUserUId]);
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
+  Future loginWithEmailAndPassword({
+    required String email,
+    required String password,
+    required Function(String) onSuccess,
+    required Function(String) onError,
+  }) async {
+    final url = Uri.parse(Geno.getEmailSigningUrl());
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserEmail: email,
+            gUserPassword: password
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.error);
+        } else {
+          User user = User(
+            uid: result.data[gUserUId],
+            email: email,
+            password: password,
+            mode: AuthenticationMode.email
+          );
+          _preferences.putAll(user.toMap());
+          onSuccess(result.data[gUserUId]);
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
+  Future signingWithEmailAndPassword({
+    required String email,
+    required String password,
+    required Function onEmailSent,
+    required Function(String) onError,
+  }) async {
+    final url = Uri.parse(Geno.getEmailLoginUrl());
+
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserEmail: email,
+            gUserPassword: password
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.error);
+        } else {
+          onEmailSent();
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
+  Future logOut() async {
+    _user = null;
+    await _preferences.putAll(User().toMap());
+  }
+
   static Future<Auth> get instance async {
     _preferences = await GenoPreferences.getInstance();
     await _getAuthenticationData();
@@ -43,9 +165,3 @@ class Auth {
 
   User? get user => _user;
 }
-
-const String gUser = 'g_user';
-const String gUserUId = 'g_user_uid';
-const String gUserEmail = 'g_user_email';
-const String gUserPhoneNumber = 'g_user_phoneNumber';
-const String gUserAuthMode = 'g_user_auth_mode';

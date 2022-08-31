@@ -1,16 +1,49 @@
+import 'dart:convert';
+import '../constants.dart';
+
 class User {
 
   final String? email;
   final String? phoneNumber;
   final String? uid;
+  final String? password;
+  final String? appLocation;
   final AuthenticationMode mode;
 
   const User({
-   this.email,
-   this.phoneNumber,
-   this.uid,
-   this.mode = AuthenticationMode.none,
-});
+    this.email,
+    this.phoneNumber,
+    this.appLocation,
+    this.uid,
+    this.password,
+    this.mode = AuthenticationMode.none,
+  });
+
+  String toJson() {
+    return jsonEncode(toMap());
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      gUserEmail: email,
+      gUserPassword: password,
+      gAppLocalisation: appLocation,
+      gUserUId: uid,
+      gUserAuthMode: mode.toString(),
+      gUserPhoneNumber: phoneNumber,
+    };
+  }
+
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      email: map[gUserEmail],
+      password: map[gUserPassword],
+      uid: map[gUserUId],
+      appLocation: map[gAppLocalisation],
+      phoneNumber: map[gUserPhoneNumber],
+      mode: AuthenticationMode.parse(map[gUserAuthMode]),
+    );
+  }
 }
 
 enum AuthenticationMode {

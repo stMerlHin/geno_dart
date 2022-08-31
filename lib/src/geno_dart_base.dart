@@ -7,6 +7,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'auth.dart';
 import 'constants.dart';
+import 'model/result.dart';
 
 class Geno {
   static String _gHost = gLocalhost;
@@ -76,6 +77,20 @@ class Geno {
   static String get baseUrl => 'https://$_gHost:$_gPort/';
   static String get unsecureBaseUrl => 'http://$_gHost:$_unsecureGPort/';
   static String get wsBaseUrl => 'ws://$_gHost:$_gPort/ws/';
+  static String getEmailSigningUrl([bool secured = true]) {
+    return secured ? '$baseUrl/auth/email/signing/' :
+    '$unsecureBaseUrl/auth/email/signing/';
+  }
+
+  static String getEmailLoginUrl([bool secured = true]) {
+    return secured ? '$baseUrl/auth/email/login/' :
+    '$unsecureBaseUrl/auth/email/login/';
+  }
+
+  static String getPhoneAuthUrl([bool secured = true]) {
+    return secured ? '$baseUrl/auth/phone/' :
+    '$unsecureBaseUrl/auth/phone/';
+  }
 
   String get host => _gHost;
 
@@ -120,6 +135,7 @@ class TableListener {
 
   String _toJson() {
     return jsonEncode({
+      gAppSignature: Geno.appSignature,
       gConnectionId: _uid,
       gTable: table,
     });
@@ -245,6 +261,7 @@ class GDirectRequest {
 
   String _toJson() {
     return jsonEncode({
+      gAppSignature: Geno.appSignature,
       gConnectionId: connectionId,
       gTable: table,
       gType: type.toString(),
@@ -254,7 +271,7 @@ class GDirectRequest {
   }
 
   exec({
-    required Function(GResult) onSuccess,
+    required Function(Result) onSuccess,
     required Function(String) onError,
     bool secure = true,
   }) async {
@@ -273,7 +290,7 @@ class GDirectRequest {
         );
 
         if (response.statusCode == 200) {
-          GResult result = GResult.fromJson(response.body);
+          Result result = Result.fromJson(response.body);
           if (result.errorHappened) {
             onError(result.error);
           } else {
@@ -312,22 +329,6 @@ enum GRequestType {
       case GRequestType.drop:
         return 'drop';
     }
-  }
-}
-
-class GResult {
-  final List<dynamic> data;
-  final bool errorHappened;
-  final String error;
-
-  GResult({this.data = const [], this.errorHappened = false, this.error = ''});
-
-  static GResult fromJson(String json) {
-    var map = jsonDecode(json);
-    return GResult(
-        data: map[gData],
-        errorHappened: map[gErrorHappened],
-        error: map[gError]);
   }
 }
 

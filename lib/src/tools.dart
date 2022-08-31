@@ -6,6 +6,7 @@ class GenoPreferences {
 
   static final GenoPreferences _instance = GenoPreferences._();
   static late Map<String, dynamic> _preferences;
+  static bool _locked = false;
 
   GenoPreferences._();
 
@@ -21,14 +22,23 @@ class GenoPreferences {
     return _instance;
   }
 
-  void put({required String key, dynamic value}) {
+  Future<void> put({required String key, dynamic value}) async {
     _preferences[key] = value;
-    File f = File(preferenceFile);
-    f.writeAsString(jsonEncode(_preferences));
+    await _saveData();
   }
 
-  void putAll(Map<String, dynamic> map) {
+  Future<void> putAll(Map<String, dynamic> map) async {
     _preferences.addAll(map);
+    await _saveData();
+  }
+
+  Future<void> _saveData() async {
+    if(!_locked) {
+      _locked = true;
+      File f = File(preferenceFile);
+      await f.writeAsString(jsonEncode(_preferences));
+      _locked = false;
+    }
   }
 
   String? getString(String key) {
