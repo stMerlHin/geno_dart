@@ -78,18 +78,18 @@ class Geno {
   static String get unsecureBaseUrl => 'http://$_gHost:$_unsecureGPort/';
   static String get wsBaseUrl => 'ws://$_gHost:$_gPort/ws/';
   static String getEmailSigningUrl([bool secured = true]) {
-    return secured ? '$baseUrl/auth/email/signing/' :
-    '$unsecureBaseUrl/auth/email/signing/';
+    return secured ? '$baseUrl' 'auth/email/signing' :
+    '$unsecureBaseUrl' 'auth/email/signing';
   }
 
   static String getEmailLoginUrl([bool secured = true]) {
-    return secured ? '$baseUrl/auth/email/login/' :
-    '$unsecureBaseUrl/auth/email/login/';
+    return secured ? '$baseUrl' 'auth/email/login' :
+    '$unsecureBaseUrl' 'auth/email/login';
   }
 
   static String getPhoneAuthUrl([bool secured = true]) {
-    return secured ? '$baseUrl/auth/phone/' :
-    '$unsecureBaseUrl/auth/phone/';
+    return secured ? '$baseUrl' 'auth/phone' :
+    '$unsecureBaseUrl' 'auth/phone';
   }
 
   String get host => _gHost;

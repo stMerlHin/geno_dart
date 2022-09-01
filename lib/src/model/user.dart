@@ -44,6 +44,11 @@ class User {
       mode: AuthenticationMode.parse(map[gUserAuthMode]),
     );
   }
+
+  @override
+  String toString() {
+    return toMap().toString();
+  }
 }
 
 enum AuthenticationMode {

@@ -11,6 +11,7 @@ class Auth {
   static late final GenoPreferences _preferences;
   static final Auth _instance = Auth._();
   static User? _user;
+  static bool _initialized = false;
 
   Auth._();
 
@@ -37,8 +38,9 @@ class Auth {
     required String phoneNumber,
     required Function(String) onSuccess,
     required Function(String) onError,
+    bool secure = true
 }) async {
-    final url = Uri.parse(Geno.getPhoneAuthUrl());
+    final url = Uri.parse(Geno.getPhoneAuthUrl(secure));
     try {
       final response = await http.post(
           url,
@@ -54,7 +56,7 @@ class Auth {
       if (response.statusCode == 200) {
         AuthResult result = AuthResult.fromJson(response.body);
         if (result.errorHappened) {
-          onError(result.error);
+          onError(result.errorMessage);
         } else {
           User user = User(
               uid: result.data[gUserUId],
@@ -75,10 +77,11 @@ class Auth {
   Future loginWithEmailAndPassword({
     required String email,
     required String password,
-    required Function(String) onSuccess,
+    required Function(User) onSuccess,
     required Function(String) onError,
+    bool secure = true
   }) async {
-    final url = Uri.parse(Geno.getEmailSigningUrl());
+    final url = Uri.parse(Geno.getEmailLoginUrl(secure));
     try {
       final response = await http.post(
           url,
@@ -91,20 +94,14 @@ class Auth {
             gUserPassword: password
           })
       );
-
       if (response.statusCode == 200) {
         AuthResult result = AuthResult.fromJson(response.body);
         if (result.errorHappened) {
-          onError(result.error);
+          onError(result.errorMessage);
         } else {
-          User user = User(
-            uid: result.data[gUserUId],
-            email: email,
-            password: password,
-            mode: AuthenticationMode.email
-          );
+          User user = User.fromMap(result.data);
           _preferences.putAll(user.toMap());
-          onSuccess(result.data[gUserUId]);
+          onSuccess(user);
         }
       } else {
         onError(response.body.toString());
@@ -119,8 +116,9 @@ class Auth {
     required String password,
     required Function onEmailSent,
     required Function(String) onError,
+    bool secure = true
   }) async {
-    final url = Uri.parse(Geno.getEmailLoginUrl());
+    final url = Uri.parse(Geno.getEmailSigningUrl(secure));
 
     try {
       final response = await http.post(
@@ -138,7 +136,7 @@ class Auth {
       if (response.statusCode == 200) {
         AuthResult result = AuthResult.fromJson(response.body);
         if (result.errorHappened) {
-          onError(result.error);
+          onError(result.errorMessage);
         } else {
           onEmailSent();
         }
@@ -156,8 +154,12 @@ class Auth {
   }
 
   static Future<Auth> get instance async {
-    _preferences = await GenoPreferences.getInstance();
-    await _getAuthenticationData();
+    if(!_initialized) {
+      _preferences = await GenoPreferences.getInstance();
+      await _getAuthenticationData();
+      _initialized = true;
+      return _instance;
+    }
     return _instance;
   }
 
