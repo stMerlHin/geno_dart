@@ -4,15 +4,15 @@ import 'dart:io';
 
 import 'package:uuid/uuid.dart';
 
-class GenoPreferences {
+class Preferences {
 
-  static final GenoPreferences _instance = GenoPreferences._();
+  static final Preferences _instance = Preferences._();
   static late Map<String, dynamic> _preferences;
   static bool _locked = false;
 
-  GenoPreferences._();
+  Preferences._();
 
-  static Future<GenoPreferences> getInstance() async {
+  static Future<Preferences> getInstance() async {
     File gP = File(preferenceFile);
     bool exist = await gP.exists();
     if(exist) {
@@ -60,13 +60,13 @@ class GenoPreferences {
   }
 }
 
-class GenoCache {
+class Cache {
 
   final String cacheFilePath;
   Map<String, dynamic> data;
   bool _locked = false;
 
-  GenoCache._({
+  Cache._({
     required this.cacheFilePath,
     required this.data,
   });
@@ -99,14 +99,14 @@ class GenoCache {
     return false;
   }
 
-  static Future<GenoCache> getInstance(String cacheFilePath) async {
+  static Future<Cache> getInstance(String cacheFilePath) async {
     File file = File(cacheFilePath);
     Map<String, dynamic> d = {};
     if(await file.exists()) {
       String str = await file.readAsString();
       d = jsonDecode(str);
     }
-    return GenoCache._(cacheFilePath: cacheFilePath, data: d);
+    return Cache._(cacheFilePath: cacheFilePath, data: d);
   }
 }
 
