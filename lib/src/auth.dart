@@ -10,7 +10,7 @@ import 'model/user.dart';
 
 class Auth {
 
-  static late final GenoPreferences _preferences;
+  static late final Preferences _preferences;
   static final Auth _instance = Auth._();
   static User? _user;
   static bool _initialized = false;
@@ -157,7 +157,7 @@ class Auth {
 
   static Future<Auth> get instance async {
     if(!_initialized) {
-      _preferences = await GenoPreferences.getInstance();
+      _preferences = await Preferences.getInstance();
       await _getAuthenticationData();
       _initialized = true;
       return _instance;
