@@ -1,7 +1,8 @@
 
 
+import 'dart:convert';
+
 import 'package:geno_dart/geno_dart.dart';
-import 'package:uuid/uuid.dart';
 
 void main() async {
   var awesome = Awesome();
@@ -28,5 +29,15 @@ void main() async {
         );
       }
   );
+
+  String s = jsonEncode({'es': {'h': 9}, 'fr': {'h': [{'es': {'h': {'zinc': 9, 'pw': 2.0},'k': {'zin': 10}}}]}});
+  print(s);
+
+  // var d = jsonDecode("["
+  //     "suit: {"
+  //     ""hd": 3"
+  //     "}"
+  //     "]");
+  // print(d);
 
 }

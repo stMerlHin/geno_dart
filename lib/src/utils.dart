@@ -2,6 +2,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:uuid/uuid.dart';
+
 class GenoPreferences {
 
   static final GenoPreferences _instance = GenoPreferences._();
@@ -55,6 +57,56 @@ class GenoPreferences {
 
   dynamic get(String key) {
     return _preferences[key];
+  }
+}
+
+class GenoCache {
+
+  final String cacheFilePath;
+  Map<String, dynamic> data;
+  bool _locked = false;
+
+  GenoCache._({
+    required this.cacheFilePath,
+    required this.data,
+  });
+
+  Map<String, dynamic>? get(String key) {
+    return data[key];
+  }
+
+  Future<bool> put({String? uid, required Map<String, dynamic> map}) async {
+    data[uid ?? Uuid().v1()] = map;
+    return await _cacheData();
+  }
+
+  List<Map<String, dynamic>> getAll() {
+    List<Map<String, dynamic>> list = [];
+    data.forEach((key, value) {
+      list.add(value);
+    });
+    return list;
+  }
+
+  Future<bool> _cacheData() async {
+    if(!_locked) {
+      _locked = true;
+      File file = File(cacheFilePath);
+      await file.writeAsString(jsonEncode(data));
+      _locked = false;
+      return true;
+    }
+    return false;
+  }
+
+  static Future<GenoCache> getInstance(String cacheFilePath) async {
+    File file = File(cacheFilePath);
+    Map<String, dynamic> d = {};
+    if(await file.exists()) {
+      String str = await file.readAsString();
+      d = jsonDecode(str);
+    }
+    return GenoCache._(cacheFilePath: cacheFilePath, data: d);
   }
 }
 

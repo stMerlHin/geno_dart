@@ -1,10 +1,12 @@
 import 'dart:convert';
 
-import 'package:geno_dart/geno_dart.dart';
-import 'package:geno_dart/src/tools.dart';
+import 'package:geno_dart/src/utils.dart';
 import 'package:http/http.dart' as http;
 
+import 'constants.dart';
+import 'geno_dart_base.dart';
 import 'model/result.dart';
+import 'model/user.dart';
 
 class Auth {
 
@@ -166,4 +168,6 @@ class Auth {
   bool get isAuthenticated => _user != null;
 
   User? get user => _user;
+
+
 }
