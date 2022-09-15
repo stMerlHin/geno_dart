@@ -76,7 +76,8 @@ class Geno {
   static String? get connectionId => auth.user?.uid;
   static String get baseUrl => 'https://$_gHost:$_gPort/';
   static String get unsecureBaseUrl => 'http://$_gHost:$_unsecureGPort/';
-  static String get wsBaseUrl => 'ws://$_gHost:$_gPort/ws/';
+  static String get wsBaseUrl => 'wss://$_gHost:$_gPort/ws/';
+  static String get unSecureWsBaseUrl => 'ws://$_gHost:$_unsecureGPort/ws/';
   static String getEmailSigningUrl([bool secured = true]) {
     return secured ? '$baseUrl' 'auth/email/signing' :
     '$unsecureBaseUrl' 'auth/email/signing';
@@ -85,6 +86,21 @@ class Geno {
   static String getEmailLoginUrl([bool secured = true]) {
     return secured ? '$baseUrl' 'auth/email/login' :
     '$unsecureBaseUrl' 'auth/email/login';
+  }
+
+  static String getEmailChangeUrl([bool secured = true]) {
+    return secured ? '$baseUrl' 'auth/email/change' :
+    '$unsecureBaseUrl' 'auth/email/change';
+  }
+
+  static String getPasswordRecoveryUrl([bool secured = true]) {
+    return secured ? '$baseUrl' 'auth/email/password/recovering' :
+    '$unsecureBaseUrl' 'auth/email/password/recovering';
+  }
+
+  static String getChangePasswordUrl([bool secured = true]) {
+    return secured ? '$baseUrl' 'auth/email/password/change' :
+    '$unsecureBaseUrl' 'auth/email/password/change';
   }
 
   static String getPhoneAuthUrl([bool secured = true]) {
@@ -105,20 +121,18 @@ class Geno {
 class TableListener {
   late WebSocketChannel _webSocket;
   bool _closeByClient = false;
-  late String _uid;
   String table;
   late int _reconnectionDelay;
 
   TableListener({required this.table});
 
   void listen(Function onChanged, {int reconnectionDelay = 1000}) {
-    _uid = Uuid().v1();
     _reconnectionDelay = reconnectionDelay;
     _create(onChanged);
   }
 
   void _create(Function onChanged) {
-    _webSocket = _createChannel('db/listen');
+    _webSocket = createChannel('db/listen');
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
       onChanged();
@@ -135,8 +149,7 @@ class TableListener {
 
   String _toJson() {
     return jsonEncode({
-      gAppSignature: Geno.appSignature,
-      gConnectionId: _uid,
+      recycleAppWsKey: Geno.appSignature,
       gTable: table,
     });
   }
@@ -147,8 +160,9 @@ class TableListener {
   }
 }
 
-WebSocketChannel _createChannel(String url) {
-  return WebSocketChannel.connect(Uri.parse('${Geno.wsBaseUrl}' '$url'));
+WebSocketChannel createChannel(String url, [bool secure = true]) {
+  return WebSocketChannel.connect(Uri.parse('${secure ? Geno.wsBaseUrl :
+  Geno.unSecureWsBaseUrl}' '$url'));
 }
 
 // an example of use.

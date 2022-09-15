@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:geno_dart/src/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'constants.dart';
 import 'geno_dart_base.dart';
@@ -33,6 +35,82 @@ class Auth {
           mode: mode,
         );
       }
+    }
+  }
+
+  Future recoverPassword({
+  required String email,
+    required Function onSuccess,
+    required Function(String) onError,
+    bool secure = true,
+    String appLocalisation = 'fr'
+}) async {
+    final url = Uri.parse(Geno.getPasswordRecoveryUrl(secure));
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserEmail: email,
+            gAppLocalisation: appLocalisation
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.errorMessage);
+        } else {
+          onSuccess();
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
+}
+
+  Future changePassword({
+    required String email,
+    required String password,
+    required String newPassword,
+    required Function onSuccess,
+    required Function(String) onError,
+    bool secure = true,
+    String appLocalisation = 'fr'
+  }) async {
+    final url = Uri.parse(Geno.getChangePasswordUrl(secure));
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserEmail: email,
+            gUserPassword: password,
+            gUserNewPassword: newPassword,
+            gAppLocalisation: appLocalisation
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.errorMessage);
+        } else {
+          onSuccess();
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
     }
   }
 
@@ -113,14 +191,107 @@ class Auth {
     }
   }
 
+  Future changeEmail({
+    required String newEmail,
+    required String oldEmail,
+    required String password,
+    required Function onEmailSent,
+    Function(String)? onListenerDisconnected,
+    Function()? onEmailConfirmed,
+    required Function(String) onError,
+    bool secure = true
+  }) async {
+    final url = Uri.parse(Geno.getEmailChangeUrl(secure));
+
+    WebSocketChannel channel;
+
+    channel = createChannel('auth/email_confirmation/listen', secure);
+
+    channel.sink.add(jsonEncode({
+      recycleAppWsKey: recycleWsAppSignature,
+      gUserEmail: newEmail
+    }));
+    channel.stream.listen((event) {
+
+      User user = User.fromJson(event);
+      //add user to preference
+      _preferences.putAll(user.toMap());
+
+      onEmailConfirmed?.call();
+      channel.sink.close();
+
+    }, onError: (e) {
+      _preferences.put(key: gUserEmail, value: newEmail);
+
+      onListenerDisconnected?.call(e.toString());
+    }).onDone(() {
+      onListenerDisconnected?.call('Done');
+    });
+
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserEmail: oldEmail,
+            gUserNewEmail: newEmail,
+            gUserPassword: password
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          channel.sink.close();
+          onError(result.errorMessage);
+        } else {
+          onEmailSent();
+        }
+      } else {
+        channel.sink.close();
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      channel.sink.close();
+      onError(e.toString());
+    }
+  }
+
   Future signingWithEmailAndPassword({
     required String email,
     required String password,
     required Function onEmailSent,
+    Function(String)? onListenerDisconnected,
+    Function(User)? onEmailConfirmed,
     required Function(String) onError,
     bool secure = true
   }) async {
     final url = Uri.parse(Geno.getEmailSigningUrl(secure));
+
+    WebSocketChannel channel;
+
+    channel = createChannel('auth/email_confirmation/listen', secure);
+
+    channel.sink.add(jsonEncode({
+      recycleAppWsKey: recycleWsAppSignature,
+      gUserEmail: email
+    }));
+    channel.stream.listen((event) {
+
+      User user = User.fromJson(event);
+      //add user to preference
+      _preferences.putAll(user.toMap());
+
+      onEmailConfirmed?.call(user);
+      channel.sink.close();
+
+    }, onError: (e) {
+      onListenerDisconnected?.call(e.toString());
+    }).onDone(() {
+    });
 
     try {
       final response = await http.post(
@@ -138,14 +309,17 @@ class Auth {
       if (response.statusCode == 200) {
         AuthResult result = AuthResult.fromJson(response.body);
         if (result.errorHappened) {
+          channel.sink.close();
           onError(result.errorMessage);
         } else {
           onEmailSent();
         }
       } else {
+        channel.sink.close();
         onError(response.body.toString());
       }
     } catch (e) {
+      channel.sink.close();
       onError(e.toString());
     }
   }
