@@ -27,5 +27,3 @@ const String gErrorHappened = 'errorHappened';
 const String gErrorMessage = 'error';
 const String gFileName = 'fileName';
 const String gFileExt = 'fileExtension';
-const String recycleAppSignature = '91a2dbf0-292d-11ed-91f1-4f98460f463c';
-const String recycleWsAppSignature = '91a2dbf0-292d-11ed-91f1-4f98460f464c';
