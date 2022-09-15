@@ -14,30 +14,67 @@ void main() async {
       unsecurePort: '80',
       onInitialization: (g) async {
         Auth auth = await Auth.instance;
-        auth.loginWithEmailAndPassword(
+        auth.changePassword(
           secure: false,
-            email: 'stevenalandou@gmail.com',
-            password: 'password',
-            onSuccess: (r) {
-              print('SUCCESS');
-              print(r);
+            email: 'tgrecycleinc@gmail.com',
+            password: 'passoir]',
+            newPassword: 'passoir',
+            onSuccess: (){
+              print('success');
             },
             onError: (e) {
-              print('ERROR');
               print(e);
             }
         );
+        // auth.recoverPassword(
+        //   secure: false,
+        //     email: 'tgrecycleinc@gmail.com',
+        //     onSuccess: () {
+        //       print('success');
+        //     },
+        //     onError: (e) {
+        //       print(e);
+        //     }
+        // );
+        // auth.signingWithEmailAndPassword(
+        //   secure: false,
+        //   email: 'stevenalandou@gmail.com',
+        //   password: 'password',
+        //   onListenerDisconnected: (e) {
+        //     print(e);
+        //   },
+        //   onEmailConfirmed: (User u) {
+        //     print('CONFIRMED');
+        //   },
+        //   onEmailSent: () {
+        //     print('EMAIL SENT');
+        //   },
+        //   onError: (e) {
+        //     print('ERROR');
+        //     print(e);
+        //   },
+        // );
+        // auth.changeEmail(
+        //   secure: false,
+        //   newEmail: 'stevenalandou@gmail.com',
+        //   oldEmail: 'stmerlhin@gmail.com',
+        //   password: 'password',
+        //   onListenerDisconnected: (e) {
+        //     print(e);
+        //   },
+        //   onEmailConfirmed: () {
+        //     print('CONFIRMED');
+        //   },
+        //   onEmailSent: () {
+        //     print('EMAIL SENT');
+        //   },
+        //   onError: (e) {
+        //     print('ERROR');
+        //     print(e);
+        //   },
+        // );
       }
   );
 
-  String s = jsonEncode({'es': {'h': 9}, 'fr': {'h': [{'es': {'h': {'zinc': 9, 'pw': 2.0},'k': {'zin': 10}}}]}});
-  print(s);
-
-  // var d = jsonDecode("["
-  //     "suit: {"
-  //     ""hd": 3"
-  //     "}"
-  //     "]");
-  // print(d);
 
 }

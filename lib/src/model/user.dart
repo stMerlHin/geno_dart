@@ -23,10 +23,25 @@ class User {
     return jsonEncode(toMap());
   }
 
+  String toNullablePasswordJson() {
+    return jsonEncode(toNullablePasswordMap());
+  }
+
   Map<String, dynamic> toMap() {
     return {
       gUserEmail: email,
       gUserPassword: password,
+      gAppLocalisation: appLocation,
+      gUserUId: uid,
+      gUserAuthMode: mode.toString(),
+      gUserPhoneNumber: phoneNumber,
+    };
+  }
+
+  Map<String, dynamic> toNullablePasswordMap() {
+    return {
+      gUserEmail: email,
+      gUserPassword: null,
       gAppLocalisation: appLocation,
       gUserUId: uid,
       gUserAuthMode: mode.toString(),
@@ -44,6 +59,19 @@ class User {
       mode: AuthenticationMode.parse(map[gUserAuthMode]),
     );
   }
+
+  factory User.fromJson(String data) {
+    Map<String, dynamic> map = jsonDecode(data);
+    return User(
+      email: map[gUserEmail],
+      password: map[gUserPassword],
+      uid: map[gUserUId],
+      appLocation: map[gAppLocalisation],
+      phoneNumber: map[gUserPhoneNumber],
+      mode: AuthenticationMode.parse(map[gUserAuthMode]),
+    );
+  }
+
 
   @override
   String toString() {
