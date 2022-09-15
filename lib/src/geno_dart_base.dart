@@ -14,6 +14,7 @@ class Geno {
   static String _gPort = gPort;
   static String _unsecureGPort = '80';
   static late final String _appSignature;
+  static late final String _appWsSignature;
   static late final Auth auth;
   static bool _initialized = false;
   late Function(Geno) _onInitialization;
@@ -24,11 +25,12 @@ class Geno {
   Geno._();
 
   ///Initialize geno client
-  Future initialize({
+  Future<void> initialize({
     String host = gLocalhost,
     String port = gPort,
     String unsecurePort = '80',
     required String appSignature,
+    required String appWsSignature,
     required Future Function(Geno) onInitialization,
     Function(Map<String, String>)? onConfigChanged,
   }) async {
@@ -73,6 +75,7 @@ class Geno {
 
   static Geno get instance => _instance;
   static String get appSignature => _appSignature;
+  static String get appWsSignature => _appWsSignature;
   static String? get connectionId => auth.user?.uid;
   static String get baseUrl => 'https://$_gHost:$_gPort/';
   static String get unsecureBaseUrl => 'http://$_gHost:$_unsecureGPort/';

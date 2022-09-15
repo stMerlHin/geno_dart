@@ -9,6 +9,7 @@ void main() async {
   print('awesome: ${awesome.isAwesome}');
   await Geno.instance.initialize(
       appSignature: '91a2dbf0-292d-11ed-91f1-4f98460f463c',
+      appWsSignature: '91a2dbf0-292d-11ed-91f1-4f98460f464c',
       host: 'localhost',
       port: '8080',
       unsecurePort: '80',
