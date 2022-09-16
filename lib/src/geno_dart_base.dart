@@ -38,10 +38,10 @@ class Geno {
   }) async {
     _onInitialization = onInitialization;
     if (!_initialized) {
-
+    
+      _privateDirectory = appPrivateDirectory;
       _appSignature = appSignature;
       auth = await Auth.instance;
-      _privateDirectory = appPrivateDirectory;
 
       _gHost = host;
       _gPort = port;
