@@ -2,24 +2,33 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:geno_dart/src/geno_dart_base.dart';
+import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
 class Preferences {
 
   static final Preferences _instance = Preferences._();
+  static String _preferenceFilePath = '';
+  static bool _initialized = false;
   static late Map<String, dynamic> _preferences;
   static bool _locked = false;
 
   Preferences._();
 
   static Future<Preferences> getInstance() async {
-    File gP = File(preferenceFile);
-    bool exist = await gP.exists();
-    if(exist) {
-      String str = await gP.readAsString();
-      _preferences = jsonDecode(str);
-    } else {
-      _preferences = {};
+    if(!_initialized) {
+      await Directory(Geno.appPrivateDirectory).create(recursive: true);
+      _preferenceFilePath = join(Geno.appPrivateDirectory, preferenceFile);
+      File gP = File(_preferenceFilePath);
+      bool exist = await gP.exists();
+      if (exist) {
+        String str = await gP.readAsString();
+        _preferences = jsonDecode(str);
+      } else {
+        _preferences = {};
+      }
+      _initialized = true;
     }
     return _instance;
   }
@@ -37,7 +46,7 @@ class Preferences {
   Future<void> _saveData() async {
     if(!_locked) {
       _locked = true;
-      File f = File(preferenceFile);
+      File f = File(_preferenceFilePath);
       await f.writeAsString(jsonEncode(_preferences));
       _locked = false;
     }
@@ -63,6 +72,7 @@ class Preferences {
 class Cache {
 
   final String cacheFilePath;
+  static final Map<String, Cache>_instances = {};
   Map<String, dynamic> data;
   bool _locked = false;
 
@@ -99,14 +109,33 @@ class Cache {
     return false;
   }
 
-  static Future<Cache> getInstance(String cacheFilePath) async {
-    File file = File(cacheFilePath);
+  static Future<Cache> getInstance({
+    required String cacheFilePath,
+    bool publicDirectory = false
+  }) async {
+    String cacheAbsolutePath = cacheFilePath;
+
+    if(!publicDirectory) {
+      await Directory(Geno.appPrivateDirectory).create(recursive: true);
+      cacheAbsolutePath = join(Geno.appPrivateDirectory, cacheFilePath);
+    }
+
+    ///Check if an instance of the same cache is not already launched
+    if(Cache._instances[cacheAbsolutePath] != null) {
+      return Cache._instances[cacheAbsolutePath]!;
+    }
+
+    File file = File(cacheAbsolutePath);
     Map<String, dynamic> d = {};
     if(await file.exists()) {
       String str = await file.readAsString();
       d = jsonDecode(str);
     }
-    return Cache._(cacheFilePath: cacheFilePath, data: d);
+    return Cache._(cacheFilePath: cacheAbsolutePath, data: d);
+  }
+
+  void dispose() {
+    Cache._instances.remove(cacheFilePath);
   }
 }
 
