@@ -15,6 +15,7 @@ void main() {
       await geno.initialize(
           appSignature: '91a2dbf0-292d-11ed-91f1-4f98460f463c',
           appWsSignature: '91a2dbf0-292d-11ed-91f1-4f98460f464c',
+          appPrivateDirectory: '.',
           onInitialization: (_) async {
             await GDirectRequest.select(
                 sql: '',
