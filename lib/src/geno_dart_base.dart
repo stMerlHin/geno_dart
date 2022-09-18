@@ -34,7 +34,7 @@ class Geno {
     required String appWsSignature,
     required String appPrivateDirectory,
     required Future Function(Geno) onInitialization,
-    Future Function()? onLoginOut,
+    Future Function()? onUserLoggedOut,
     Function(Map<String, String>)? onConfigChanged,
   }) async {
     _onInitialization = onInitialization;
@@ -43,7 +43,7 @@ class Geno {
       _privateDirectory = appPrivateDirectory;
       _appSignature = appSignature;
       _appWsSignature = appWsSignature;
-      _onLoginOut = onLoginOut;
+      _onLoginOut = onUserLoggedOut;
       auth = await Auth.instance;
       auth.addLoginListener(_onUserLoggedOut);
 
