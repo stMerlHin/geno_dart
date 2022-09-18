@@ -34,7 +34,7 @@ class Geno {
     required String appWsSignature,
     required String appPrivateDirectory,
     required Future Function(Geno) onInitialization,
-    Future Function()? onUserLoggedOut,
+    Function()? onUserLoggedOut,
     Function(Map<String, String>)? onConfigChanged,
   }) async {
     _onInitialization = onInitialization;
