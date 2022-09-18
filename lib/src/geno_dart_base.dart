@@ -41,6 +41,7 @@ class Geno {
     
       _privateDirectory = appPrivateDirectory;
       _appSignature = appSignature;
+      _appWsSignature = appWsSignature;
       auth = await Auth.instance;
 
       _gHost = host;
@@ -113,6 +114,11 @@ class Geno {
   static String getPhoneAuthUrl([bool secured = true]) {
     return secured ? '$baseUrl' 'auth/phone' :
     '$unsecureBaseUrl' 'auth/phone';
+  }
+
+  static String getPhoneChangeUrl([bool secured = true]) {
+    return secured ? '$baseUrl' 'auth/phone/change' :
+    '$unsecureBaseUrl' 'auth/phone/change';
   }
 
   String get host => _gHost;

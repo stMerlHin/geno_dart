@@ -154,6 +154,44 @@ class Auth {
     }
   }
 
+  Future changePhoneNumber({
+    required String phoneNumber,
+    required String newPhoneNumber,
+    required Function() onSuccess,
+    required Function(String) onError,
+    bool secure = true
+  }) async {
+    final url = Uri.parse(Geno.getPhoneChangeUrl(secure));
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+          },
+          body: jsonEncode({
+            gAppSignature: Geno.appSignature,
+            gUserUId: user!.uid,
+            gUserPhoneNumber: phoneNumber,
+            gNewUserPhoneNumber: newPhoneNumber
+          })
+      );
+
+      if (response.statusCode == 200) {
+        AuthResult result = AuthResult.fromJson(response.body);
+        if (result.errorHappened) {
+          onError(result.errorMessage);
+        } else {
+          _preferences.put(key: gUserPhoneNumber, value: newPhoneNumber);
+          onSuccess();
+        }
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
   Future loginWithEmailAndPassword({
     required String email,
     required String password,
