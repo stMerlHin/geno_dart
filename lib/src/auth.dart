@@ -14,6 +14,7 @@ class Auth {
 
   static late final Preferences _preferences;
   static final Auth _instance = Auth._();
+  static final List<Function(bool)> _loginListeners = [];
   static User? _user;
   static bool _initialized = false;
 
@@ -35,6 +36,16 @@ class Auth {
           mode: mode,
         );
       }
+    }
+  }
+
+  void addLoginListener(Function(bool) listener) {
+    _loginListeners.add(listener);
+  }
+
+  void _notifyLoginListener(bool value) {
+    for (var element in _loginListeners) {
+      element(value);
     }
   }
 
@@ -144,6 +155,7 @@ class Auth {
               mode: AuthenticationMode.phoneNumber
           );
           _preferences.putAll(user.toMap());
+          _notifyLoginListener(true);
           onSuccess(result.data[gUserUId]);
         }
       } else {
@@ -219,6 +231,7 @@ class Auth {
         } else {
           User user = User.fromMap(result.data);
           _preferences.putAll(user.toMap());
+          _notifyLoginListener(true);
           onSuccess(user);
         }
       } else {
@@ -322,7 +335,7 @@ class Auth {
       User user = User.fromJson(event);
       //add user to preference
       _preferences.putAll(user.toMap());
-
+      _notifyLoginListener(true);
       onEmailConfirmed?.call(user);
       channel.sink.close();
 
@@ -365,6 +378,7 @@ class Auth {
   Future logOut() async {
     _user = null;
     await _preferences.putAll(User().toMap());
+    _notifyLoginListener(false);
   }
 
   static Future<Auth> get instance async {
