@@ -19,6 +19,7 @@ const String gUserNewPassword = 'g_user_new_password';
 const String gAppLocalisation = 'app_localization';
 const String gUserPhoneNumber = 'g_user_phoneNumber';
 const String gUserAuthMode = 'g_user_auth_mode';
+const String gNewUserPhoneNumber = 'g_new_user_phoneNumber';
 const String gType = 'type';
 const String gData = 'data';
 const String gUid = 'uid';

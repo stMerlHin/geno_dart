@@ -16,18 +16,38 @@ void main() async {
       unsecurePort: '80',
       onInitialization: (g) async {
         Auth auth = await Auth.instance;
-        auth.changePassword(
+
+        // auth.loginWithPhoneNumber(
+        //   secure: false,
+        //     phoneNumber: '+228 98882061',
+        //     onSuccess: (u) {
+        //       print('SUCCESS');
+        //     },
+        //     onError: (e) {
+        //       print(e.toString());
+        //     });
+        auth.changePhoneNumber(
           secure: false,
-            email: 'tgrecycleinc@gmail.com',
-            password: 'passoir]',
-            newPassword: 'passoir',
-            onSuccess: (){
-              print('success');
+            phoneNumber: '98882061',
+            newPhoneNumber: '93359228',
+            onSuccess: () {
+              print('SUCCESS');
             },
             onError: (e) {
-              print(e);
-            }
-        );
+              print('ERROR $e');
+            });
+        // auth.changePassword(
+        //   secure: false,
+        //     email: 'tgrecycleinc@gmail.com',
+        //     password: 'passoir]',
+        //     newPassword: 'passoir',
+        //     onSuccess: (){
+        //       print('success');
+        //     },
+        //     onError: (e) {
+        //       print(e);
+        //     }
+        // );
         // auth.recoverPassword(
         //   secure: false,
         //     email: 'tgrecycleinc@gmail.com',
@@ -40,8 +60,8 @@ void main() async {
         // );
         // auth.signingWithEmailAndPassword(
         //   secure: false,
-        //   email: 'stevenalandou@gmail.com',
-        //   password: 'password',
+        //   email: 'serge@miaplenou.com',
+        //   password: '12413',
         //   onListenerDisconnected: (e) {
         //     print(e);
         //   },
