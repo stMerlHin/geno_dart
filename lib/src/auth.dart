@@ -20,8 +20,7 @@ class Auth {
 
   Auth._();
 
-  static Future _getAuthenticationData() async {
-
+  static void _getAuthenticationData() {
     String? uid = _preferences.getString(gUserUId);
     if(uid != null) {
       String? email = _preferences.getString(gUserEmail);
@@ -159,6 +158,7 @@ class Auth {
               mode: AuthenticationMode.phoneNumber
           );
           _preferences.putAll(user.toMap());
+          _getAuthenticationData();
           _notifyLoginListener(true);
           onSuccess(result.data[gUserUId]);
         }
@@ -236,6 +236,7 @@ class Auth {
           User user = User.fromMap(result.data);
           _preferences.putAll(user.toMap());
           _notifyLoginListener(true);
+          _getAuthenticationData();
           onSuccess(user);
         }
       } else {
@@ -272,11 +273,13 @@ class Auth {
       //add user to preference
       _preferences.putAll(user.toMap());
 
+      _getAuthenticationData();
+
       onEmailConfirmed?.call();
       channel.sink.close();
 
     }, onError: (e) {
-      _preferences.put(key: gUserEmail, value: newEmail);
+      onError(e);
 
       onListenerDisconnected?.call(e.toString());
     }).onDone(() {
@@ -339,6 +342,7 @@ class Auth {
       User user = User.fromJson(event);
       //add user to preference
       _preferences.putAll(user.toMap());
+      _getAuthenticationData();
       _notifyLoginListener(true);
       onEmailConfirmed?.call(user);
       channel.sink.close();
@@ -388,7 +392,7 @@ class Auth {
   static Future<Auth> get instance async {
     if(!_initialized) {
       _preferences = await Preferences.getInstance();
-      await _getAuthenticationData();
+      _getAuthenticationData();
       _initialized = true;
       return _instance;
     }
