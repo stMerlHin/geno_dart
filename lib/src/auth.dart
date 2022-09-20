@@ -39,6 +39,10 @@ class Auth {
     }
   }
 
+  void _updateUser() {
+
+  }
+
   void addLoginListener(Function(bool) listener) {
     _loginListeners.add(listener);
   }
