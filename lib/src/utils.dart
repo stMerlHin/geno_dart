@@ -109,6 +109,11 @@ class Cache {
     });
     return list;
   }
+  
+  Future<bool> remove(String key) async {
+    data.remove(key);
+    return await _cacheData();
+  }
 
   Future<bool> _cacheData() async {
     if(!_locked) {
