@@ -80,10 +80,14 @@ class Cache {
   static final Map<String, Cache>_instances = {};
   Map<String, dynamic> data;
   bool _locked = false;
+  final bool encrypt;
+  final String? encryptionKey;
 
   Cache._({
     required this.cacheFilePath,
     required this.data,
+    required this.encrypt,
+    this.encryptionKey,
   });
 
   Map<String, dynamic>? get(String key) {
@@ -124,7 +128,16 @@ class Cache {
     if(!_locked) {
       _locked = true;
       File file = File(cacheFilePath);
-      await file.writeAsString(jsonEncode(data));
+      if(encrypt) {
+        await file.writeAsString(
+            Obfuscator.encrypt(
+                content: jsonEncode(data),
+              key: encryptionKey
+            )
+        );
+      } else {
+        await file.writeAsString(jsonEncode(data));
+      }
       _locked = false;
       return true;
     }
@@ -133,7 +146,9 @@ class Cache {
 
   static Future<Cache> getInstance({
     required String cacheFilePath,
-    bool publicDirectory = false
+    bool publicDirectory = false,
+    bool encrypt = true,
+    String? encryptionKey,
   }) async {
     String cacheAbsolutePath = cacheFilePath;
 
@@ -151,9 +166,21 @@ class Cache {
     Map<String, dynamic> d = {};
     if(await file.exists()) {
       String str = await file.readAsString();
-      d = jsonDecode(str);
+      if(encrypt) {
+        d = jsonDecode(Obfuscator.decrypt(
+            content: str,
+          key: encryptionKey,
+        ) ?? '{}');
+      } else {
+        d = jsonDecode(str);
+      }
     }
-    return Cache._(cacheFilePath: cacheAbsolutePath, data: d);
+    return Cache._(
+        cacheFilePath: cacheAbsolutePath,
+        data: d,
+      encrypt: encrypt,
+      encryptionKey: encryptionKey
+    );
   }
 
   void dispose() {
