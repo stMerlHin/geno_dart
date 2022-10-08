@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:geno_dart/geno_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'auth.dart';
-import 'constants.dart';
-import 'model/result.dart';
 
 class Geno {
   static String _gHost = gLocalhost;
   static String _gPort = gPort;
   static String _unsecureGPort = '80';
   static String _privateDirectory = '';
+  static String _encryptionKey = '';
   static late final String _appSignature;
   static late final String _appWsSignature;
   static late final Auth auth;
@@ -26,10 +25,22 @@ class Geno {
   Geno._();
 
   ///Initialize geno client
+  ///[host] the remote host which run the http server
+  ///[port] the ssl supported port on which the server is running
+  ///[unsecurePort] the none ssl supported port on which the server is running,
+  /// default to 80
+  ///[appSignature] the signature to send to the server for authentication
+  ///[appWsSignature] the ws signature to send to the server for authentication
+  ///[appPrivateDirectory] is the directory where the app should store cache files
+  ///[onInitialization] is called when geno components are all set up
+  ///[onConfigChanged] is called when the [host], [port] or [unsecurePort] have
+  ///changed
+  ///[onUserLoggedOut] is called when the user logged out
   Future<void> initialize({
     String host = gLocalhost,
     String port = gPort,
     String unsecurePort = '80',
+    required String encryptionKey,
     required String appSignature,
     required String appWsSignature,
     required String appPrivateDirectory,
@@ -41,6 +52,7 @@ class Geno {
     if (!_initialized) {
     
       _privateDirectory = appPrivateDirectory;
+      _encryptionKey = encryptionKey;
       _appSignature = appSignature;
       _appWsSignature = appWsSignature;
       _onLoginOut = onUserLoggedOut;
@@ -87,6 +99,7 @@ class Geno {
   }
 
   static Geno get instance => _instance;
+  static String get encryptionKey => _encryptionKey;
   static String get appSignature => _appSignature;
   static String get appWsSignature => _appWsSignature;
   static String get appPrivateDirectory => _privateDirectory;
@@ -130,23 +143,32 @@ class Geno {
     '$unsecureBaseUrl' 'auth/phone/change';
   }
 
+  ///The host which runs the http server
   String get host => _gHost;
 
+  ///The port of the http server
   String get port => _gPort;
 
 }
 
-//  TableListener tableListener = TableListener(table: 'student');
-//     tableListener.listen(() {
-//       print('Change HAPPENED ON TABLE student');
-//     });
-class TableListener {
+///  DataListener tableListener = TableListener(table: 'student');
+///     tableListener.listen(() {
+///       print('Change HAPPENED ON TABLE student');
+///     });
+///
+///  DataListener rowListener = DataListener(table: 'student', rowId: "2");
+///     tableListener.listen(() {
+///       print('Change HAPPENED ON TABLE student');
+///     });
+///
+class DataListener {
   late WebSocketChannel _webSocket;
   bool _closeByClient = false;
   String table;
+  String? rowId;
   late int _reconnectionDelay;
 
-  TableListener({required this.table});
+  DataListener({required this.table, rowId});
 
   void listen(Function onChanged, {int reconnectionDelay = 1000}) {
     _reconnectionDelay = reconnectionDelay;
@@ -172,7 +194,9 @@ class TableListener {
   String _toJson() {
     return jsonEncode({
       recycleAppWsKey: Geno.appSignature,
+      gConnectionId: Geno.auth.user!.uid,
       gTable: table,
+      gRowId: rowId,
     });
   }
 
@@ -180,6 +204,10 @@ class TableListener {
     _closeByClient = true;
     _webSocket.sink.close();
   }
+}
+
+class RowListener {
+  
 }
 
 WebSocketChannel createChannel(String url, [bool secure = true]) {
@@ -191,7 +219,6 @@ WebSocketChannel createChannel(String url, [bool secure = true]) {
 // we want to get all user with 3 as id
 //GDirectRequest.select(
 //         sql: 'SELECT * FROM student WHERE id = ? ',
-//         table: 'student',
 //         values: [3]
 //    ).exec(
 //         onSuccess: (results) {
@@ -219,20 +246,19 @@ class GDirectRequest {
 
   factory GDirectRequest.select({
     required String sql,
-    required String table,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
         connectionId: Geno.connectionId,
         sql: sql,
         type: GRequestType.select,
-        table: table,
+        table: '',
         values: values);
   }
 
   factory GDirectRequest.insert({
-    required String sql,
     required String table,
+    required String sql,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
@@ -244,8 +270,8 @@ class GDirectRequest {
   }
 
   factory GDirectRequest.update({
-    required String sql,
     required String table,
+    required String sql,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
@@ -257,8 +283,8 @@ class GDirectRequest {
   }
 
   factory GDirectRequest.delete({
-    required String sql,
     required String table,
+    required String sql,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
@@ -270,8 +296,8 @@ class GDirectRequest {
   }
 
   factory GDirectRequest.create({
-    required String sql,
     required String table,
+    required String sql,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
@@ -283,8 +309,8 @@ class GDirectRequest {
   }
 
   factory GDirectRequest.drop({
-    required String sql,
     required String table,
+    required String sql,
     List<dynamic>? values,
   }) {
     return GDirectRequest(
@@ -302,7 +328,7 @@ class GDirectRequest {
       gTable: table,
       gType: type.toString(),
       gValues: values,
-      gSql: sql
+      gSql: sql,
     });
   }
 
@@ -366,11 +392,6 @@ enum GRequestType {
         return 'drop';
     }
   }
-}
-
-/// Checks if you are awesome. Spoiler: you are.
-class Awesome {
-  bool get isAwesome => true;
 }
 
 const String gInterruptionError = 'Connection closed before full header was received';

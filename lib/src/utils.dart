@@ -1,7 +1,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:encrypt/encrypt.dart';
 import 'package:geno_dart/src/geno_dart_base.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
@@ -16,6 +18,7 @@ class Preferences {
 
   Preferences._();
 
+  ///Get an instance of preferences
   static Future<Preferences> getInstance() async {
     if(!_initialized) {
       await Directory(Geno.appPrivateDirectory).create(recursive: true);
@@ -24,7 +27,7 @@ class Preferences {
       bool exist = await gP.exists();
       if (exist) {
         String str = await gP.readAsString();
-        _preferences = jsonDecode(str);
+        _preferences = jsonDecode(Obfuscator.decrypt(content: str) ?? '{}');
       } else {
         _preferences = {};
       }
@@ -47,7 +50,9 @@ class Preferences {
     if(!_locked) {
       _locked = true;
       File f = File(_preferenceFilePath);
-      await f.writeAsString(jsonEncode(_preferences));
+      await f.writeAsString(Obfuscator.encrypt(
+          content: jsonEncode(_preferences)
+      ));
       _locked = false;
     }
   }
@@ -75,10 +80,14 @@ class Cache {
   static final Map<String, Cache>_instances = {};
   Map<String, dynamic> data;
   bool _locked = false;
+  final bool encrypt;
+  final String? encryptionKey;
 
   Cache._({
     required this.cacheFilePath,
     required this.data,
+    required this.encrypt,
+    this.encryptionKey,
   });
 
   Map<String, dynamic>? get(String key) {
@@ -109,7 +118,7 @@ class Cache {
     });
     return list;
   }
-  
+
   Future<bool> remove(String key) async {
     data.remove(key);
     return await _cacheData();
@@ -119,7 +128,16 @@ class Cache {
     if(!_locked) {
       _locked = true;
       File file = File(cacheFilePath);
-      await file.writeAsString(jsonEncode(data));
+      if(encrypt) {
+        await file.writeAsString(
+            Obfuscator.encrypt(
+                content: jsonEncode(data),
+              key: encryptionKey
+            )
+        );
+      } else {
+        await file.writeAsString(jsonEncode(data));
+      }
       _locked = false;
       return true;
     }
@@ -128,7 +146,9 @@ class Cache {
 
   static Future<Cache> getInstance({
     required String cacheFilePath,
-    bool publicDirectory = false
+    bool publicDirectory = false,
+    bool encrypt = true,
+    String? encryptionKey,
   }) async {
     String cacheAbsolutePath = cacheFilePath;
 
@@ -146,14 +166,80 @@ class Cache {
     Map<String, dynamic> d = {};
     if(await file.exists()) {
       String str = await file.readAsString();
-      d = jsonDecode(str);
+      if(encrypt) {
+        d = jsonDecode(Obfuscator.decrypt(
+            content: str,
+          key: encryptionKey,
+        ) ?? '{}');
+      } else {
+        d = jsonDecode(str);
+      }
     }
-    return Cache._(cacheFilePath: cacheAbsolutePath, data: d);
+    return Cache._(
+        cacheFilePath: cacheAbsolutePath,
+        data: d,
+      encrypt: encrypt,
+      encryptionKey: encryptionKey
+    );
   }
 
   void dispose() {
     Cache._instances.remove(cacheFilePath);
   }
 }
+
+
+class Obfuscator {
+
+  ///[key] must 32 length
+  ///the content to encrypt
+  static String encrypt({
+    String? key,
+    required String content,
+  }) {
+    final encrypter = _createEncrypter(key ?? Geno.encryptionKey);
+
+    final encrypted = encrypter.encrypt(content, iv: IV.fromLength(16));
+    return encrypted.base64;
+  }
+
+  static String? decrypt({
+    String? key,
+    required String content
+  }) {
+    final encrypter = _createEncrypter(key ?? Geno.encryptionKey);
+
+    try {
+      final decrypted = encrypter.decrypt(
+          Encrypted(content.toBase64UInt8List()),
+          iv: IV.fromLength(16)
+      );
+
+      return decrypted;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Encrypter _createEncrypter(String key) {
+    final encryptionKey = Key.fromUtf8(key);
+
+    return Encrypter(AES(encryptionKey));
+  }
+
+}
+
+extension StringUint8List on String {
+
+
+  Uint8List toUInt8List() {
+    return Uint8List.fromList(codeUnits);
+  }
+
+  Uint8List toBase64UInt8List() {
+    return base64Decode(this);
+  }
+}
+
 
 const String preferenceFile = '.gp';
