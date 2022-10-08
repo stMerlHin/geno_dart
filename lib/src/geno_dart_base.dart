@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'auth.dart';
@@ -19,6 +18,7 @@ class Geno {
   static late final Auth auth;
   static bool _initialized = false;
   late Function(Geno) _onInitialization;
+  late Function()? _onLoginOut;
   late Function(Map<String, String>) _onConfigChanged;
 
   static final Geno _instance = Geno._();
@@ -34,6 +34,7 @@ class Geno {
     required String appWsSignature,
     required String appPrivateDirectory,
     required Future Function(Geno) onInitialization,
+    Function()? onUserLoggedOut,
     Function(Map<String, String>)? onConfigChanged,
   }) async {
     _onInitialization = onInitialization;
@@ -42,7 +43,9 @@ class Geno {
       _privateDirectory = appPrivateDirectory;
       _appSignature = appSignature;
       _appWsSignature = appWsSignature;
+      _onLoginOut = onUserLoggedOut;
       auth = await Auth.instance;
+      auth.addLoginListener(_onUserLoggedOut);
 
       _gHost = host;
       _gPort = port;
@@ -51,6 +54,12 @@ class Geno {
       _onConfigChanged = onConfigChanged ?? (d) {};
       _onInitialization(this);
       _initialized = true;
+    }
+  }
+  
+  void _onUserLoggedOut(bool value) {
+    if(!value) {
+      _onLoginOut?.call();
     }
   }
 

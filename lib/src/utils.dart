@@ -85,8 +85,20 @@ class Cache {
     return data[key];
   }
 
-  Future<bool> put({String? uid, required Map<String, dynamic> map}) async {
+  Future<bool> put({
+    String? uid,
+    required Map<String, dynamic> map,
+    bool save = true
+  }) async {
     data[uid ?? Uuid().v1()] = map;
+    if(save) {
+      return await _cacheData();
+    }
+    return false;
+  }
+
+  Future<bool> putAll(Map<String, Map<String, dynamic>> map) async {
+    data.addAll(map);
     return await _cacheData();
   }
 
@@ -96,6 +108,11 @@ class Cache {
       list.add(value);
     });
     return list;
+  }
+  
+  Future<bool> remove(String key) async {
+    data.remove(key);
+    return await _cacheData();
   }
 
   Future<bool> _cacheData() async {

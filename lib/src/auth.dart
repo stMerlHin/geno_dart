@@ -14,13 +14,13 @@ class Auth {
 
   static late final Preferences _preferences;
   static final Auth _instance = Auth._();
+  static final List<Function(bool)> _loginListeners = [];
   static User? _user;
   static bool _initialized = false;
 
   Auth._();
 
-  static Future _getAuthenticationData() async {
-
+  static void _getAuthenticationData() {
     String? uid = _preferences.getString(gUserUId);
     if(uid != null) {
       String? email = _preferences.getString(gUserEmail);
@@ -35,6 +35,16 @@ class Auth {
           mode: mode,
         );
       }
+    }
+  }
+
+  void addLoginListener(Function(bool) listener) {
+    _loginListeners.add(listener);
+  }
+
+  void _notifyLoginListener(bool value) {
+    for (var element in _loginListeners) {
+      element(value);
     }
   }
 
@@ -144,6 +154,8 @@ class Auth {
               mode: AuthenticationMode.phoneNumber
           );
           _preferences.putAll(user.toMap());
+          _getAuthenticationData();
+          _notifyLoginListener(true);
           onSuccess(result.data[gUserUId]);
         }
       } else {
@@ -219,6 +231,8 @@ class Auth {
         } else {
           User user = User.fromMap(result.data);
           _preferences.putAll(user.toMap());
+          _notifyLoginListener(true);
+          _getAuthenticationData();
           onSuccess(user);
         }
       } else {
@@ -255,11 +269,13 @@ class Auth {
       //add user to preference
       _preferences.putAll(user.toMap());
 
+      _getAuthenticationData();
+
       onEmailConfirmed?.call();
       channel.sink.close();
 
     }, onError: (e) {
-      _preferences.put(key: gUserEmail, value: newEmail);
+      onError(e);
 
       onListenerDisconnected?.call(e.toString());
     }).onDone(() {
@@ -322,7 +338,8 @@ class Auth {
       User user = User.fromJson(event);
       //add user to preference
       _preferences.putAll(user.toMap());
-
+      _getAuthenticationData();
+      _notifyLoginListener(true);
       onEmailConfirmed?.call(user);
       channel.sink.close();
 
@@ -365,12 +382,13 @@ class Auth {
   Future logOut() async {
     _user = null;
     await _preferences.putAll(User().toMap());
+    _notifyLoginListener(false);
   }
 
   static Future<Auth> get instance async {
     if(!_initialized) {
       _preferences = await Preferences.getInstance();
-      await _getAuthenticationData();
+      _getAuthenticationData();
       _initialized = true;
       return _instance;
     }
