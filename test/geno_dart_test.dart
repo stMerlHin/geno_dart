@@ -18,8 +18,7 @@ void main() {
           appPrivateDirectory: '.',
           onInitialization: (_) async {
             await GDirectRequest.select(
-                sql: '',
-                table: 'table')
+                sql: '',)
                 .exec(
                 secure: false,
                 onSuccess: (_) {

@@ -9,6 +9,7 @@ const String gTable = 'table';
 const String gValues = 'values';
 const String recycleAppWsKey = 'appWsKey';
 const String gSql = 'sql';
+const String gRowId = 'rowId';
 const String gAppSignature = 'app_signature';
 const String gUser = 'g_user';
 const String gUserPassword = 'g_user_password';
