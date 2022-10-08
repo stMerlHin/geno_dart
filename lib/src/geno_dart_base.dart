@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:geno_dart/geno_dart.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'auth.dart';
-import 'constants.dart';
-import 'model/result.dart';
 
 class Geno {
   static String _gHost = gLocalhost;
   static String _gPort = gPort;
   static String _unsecureGPort = '80';
   static String _privateDirectory = '';
+  static String _encryptionKey = '';
   static late final String _appSignature;
   static late final String _appWsSignature;
   static late final Auth auth;
@@ -26,10 +25,17 @@ class Geno {
   Geno._();
 
   ///Initialize geno client
+  ///[host] the remote host which run the http server
+  ///[port] the ssl supported port on which the server is running
+  ///[unsecurePort] the none ssl supported port on which the server is running
+  ///[appSignature] the signature to send to the server for authentication
+  ///[appWsSignature] the ws signature to send to the server for authentication
+  ///
   Future<void> initialize({
     String host = gLocalhost,
     String port = gPort,
     String unsecurePort = '80',
+    required String encryptionKey,
     required String appSignature,
     required String appWsSignature,
     required String appPrivateDirectory,
@@ -41,6 +47,7 @@ class Geno {
     if (!_initialized) {
     
       _privateDirectory = appPrivateDirectory;
+      _encryptionKey = encryptionKey;
       _appSignature = appSignature;
       _appWsSignature = appWsSignature;
       _onLoginOut = onUserLoggedOut;
@@ -87,6 +94,7 @@ class Geno {
   }
 
   static Geno get instance => _instance;
+  static String get encryptionKey => _encryptionKey;
   static String get appSignature => _appSignature;
   static String get appWsSignature => _appWsSignature;
   static String get appPrivateDirectory => _privateDirectory;
