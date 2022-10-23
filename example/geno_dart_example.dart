@@ -26,7 +26,28 @@ void main() async {
         l.listen(() {
           print('changed');
         },
+            onError: (e) {
+              print('On ERROR 1');
+            },
+            secure: false
+        );
+
+        DataListener(table: 'company').listen(() {
+          print('changed');
+        },
+            onError: (e) {
+          print('On ERROR 2');
+        },
           secure: false
+        );
+
+        DataListener(table: 'company', rowId: 'wi').listen(() {
+          print('changed');
+        },
+            onError: (e) {
+          print('On ERROR 3');
+            },
+            secure: false
         );
         //print(auth.user.toString());
         // auth.loginWithEmailAndPassword(

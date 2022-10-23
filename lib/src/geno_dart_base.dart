@@ -187,13 +187,14 @@ class DataListener {
     _webSocket = createChannel('db/listen', secure);
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
-      if(event != 'close') {
-        onChanged();
-      } else {
+      print(event);
+      if(event == 'close') {
         dispose();
+      } else {
+        onChanged();
       }
     }, onError: (e) {
-      onError?.call(e);
+      onError?.call(e.toString());
     }).onDone(() {
       if (!_closeByClient) {
         Timer(Duration(milliseconds: _reconnectionDelay), () {
