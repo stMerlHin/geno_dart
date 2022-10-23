@@ -16,12 +16,18 @@ void main() async {
       port: '8080',
       unsecurePort: '80',
       onInitialization: (g) async {
-        Auth auth = await Auth.instance;
-        if(auth.user != null) {
-          print(auth.user!.toString());
-        } else {
-          print('unauthenticated user');
-        }
+        // Auth auth = await Auth.instance;
+        // if(auth.user != null) {
+        //   print(auth.user!.toString());
+        // } else {
+        //   print('unauthenticated user');
+        // }
+        DataListener l = DataListener(table: 'company');
+        l.listen(() {
+          print('changed');
+        },
+          secure: false
+        );
         //print(auth.user.toString());
         // auth.loginWithEmailAndPassword(
         //   secure: false,

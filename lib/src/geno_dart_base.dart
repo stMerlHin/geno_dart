@@ -163,6 +163,7 @@ class Geno {
 ///
 class DataListener {
   late WebSocketChannel _webSocket;
+
   bool _closeByClient = false;
   String table;
   String? rowId;
@@ -170,13 +171,15 @@ class DataListener {
 
   DataListener({required this.table, rowId});
 
-  void listen(Function onChanged, {int reconnectionDelay = 1000}) {
+  void listen(void Function() onChanged, {int reconnectionDelay = 1000,
+    bool secure = true
+  }) {
     _reconnectionDelay = reconnectionDelay;
-    _create(onChanged);
+    _create(onChanged, secure);
   }
 
-  void _create(Function onChanged) {
-    _webSocket = createChannel('db/listen');
+  void _create(void Function() onChanged, bool secure) {
+    _webSocket = createChannel('db/listen', secure);
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
       onChanged();
@@ -185,7 +188,7 @@ class DataListener {
     }).onDone(() {
       if (!_closeByClient) {
         Timer(Duration(milliseconds: _reconnectionDelay), () {
-          _create(onChanged);
+          _create(onChanged, secure);
         });
       }
     });

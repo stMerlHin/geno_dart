@@ -132,7 +132,7 @@ class Cache {
         await file.writeAsString(
             Obfuscator.encrypt(
                 content: jsonEncode(data),
-              key: encryptionKey
+                key: encryptionKey
             )
         );
       } else {
@@ -146,16 +146,14 @@ class Cache {
 
   static Future<Cache> getInstance({
     required String cacheFilePath,
-    bool publicDirectory = false,
     bool encrypt = true,
     String? encryptionKey,
   }) async {
     String cacheAbsolutePath = cacheFilePath;
 
-    if(!publicDirectory) {
-      await Directory(Geno.appPrivateDirectory).create(recursive: true);
-      cacheAbsolutePath = join(Geno.appPrivateDirectory, cacheFilePath);
-    }
+    await Directory(Geno.appPrivateDirectory).create(recursive: true);
+    cacheAbsolutePath = join(Geno.appPrivateDirectory, cacheFilePath);
+
 
     ///Check if an instance of the same cache is not already launched
     if(Cache._instances[cacheAbsolutePath] != null) {
@@ -168,7 +166,7 @@ class Cache {
       String str = await file.readAsString();
       if(encrypt) {
         d = jsonDecode(Obfuscator.decrypt(
-            content: str,
+          content: str,
           key: encryptionKey,
         ) ?? '{}');
       } else {
@@ -178,8 +176,8 @@ class Cache {
     return Cache._(
         cacheFilePath: cacheAbsolutePath,
         data: d,
-      encrypt: encrypt,
-      encryptionKey: encryptionKey
+        encrypt: encrypt,
+        encryptionKey: encryptionKey
     );
   }
 
