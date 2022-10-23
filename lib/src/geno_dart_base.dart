@@ -172,7 +172,7 @@ class DataListener {
   String? rowId;
   late int _reconnectionDelay;
 
-  DataListener({required this.table, rowId});
+  DataListener({required this.table, this.rowId});
 
   void listen(void Function() onChanged, {int reconnectionDelay = 1000,
     bool secure = true,
