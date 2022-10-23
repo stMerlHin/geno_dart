@@ -308,7 +308,7 @@ class Auth {
     channel = createChannel('auth/email_confirmation/listen', secure);
 
     channel.sink.add(jsonEncode({
-      recycleAppWsKey: Geno.appSignature,
+      gAppWsKey: Geno.appSignature,
       gUserEmail: newEmail
     }));
     channel.stream.listen((event) {
@@ -387,7 +387,7 @@ class Auth {
     channel = createChannel('auth/email_confirmation/listen', secure);
 
     channel.sink.add(jsonEncode({
-      recycleAppWsKey: Geno.appWsSignature,
+      gAppWsKey: Geno.appWsSignature,
       gUserEmail: email
     }));
     channel.stream.listen((event) {

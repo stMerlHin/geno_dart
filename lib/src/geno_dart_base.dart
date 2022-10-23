@@ -3,12 +3,14 @@ import 'dart:convert';
 
 import 'package:geno_dart/geno_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 
 class Geno {
   static String _gHost = gLocalhost;
   static String _gPort = gPort;
+  static late String _connectionId;
   static String _unsecureGPort = '80';
   static String _privateDirectory = '';
   static String _encryptionKey = '';
@@ -50,7 +52,8 @@ class Geno {
   }) async {
     _onInitialization = onInitialization;
     if (!_initialized) {
-    
+
+      _connectionId = Uuid().v1();
       _privateDirectory = appPrivateDirectory;
       _encryptionKey = encryptionKey;
       _appSignature = appSignature;
@@ -103,7 +106,7 @@ class Geno {
   static String get appSignature => _appSignature;
   static String get appWsSignature => _appWsSignature;
   static String get appPrivateDirectory => _privateDirectory;
-  static String? get connectionId => auth.user?.uid;
+  static String get connectionId => _connectionId;
   static String get baseUrl => 'https://$_gHost:$_gPort/';
   static String get unsecureBaseUrl => 'http://$_gHost:$_unsecureGPort/';
   static String get wsBaseUrl => 'wss://$_gHost:$_gPort/ws/';
@@ -172,23 +175,25 @@ class DataListener {
   DataListener({required this.table, rowId});
 
   void listen(void Function() onChanged, {int reconnectionDelay = 1000,
-    bool secure = true
+    bool secure = true,
+    void Function(String)? onError,
   }) {
     _reconnectionDelay = reconnectionDelay;
-    _create(onChanged, secure);
+    _create(onChanged, secure, onError);
   }
 
-  void _create(void Function() onChanged, bool secure) {
+  void _create(void Function() onChanged, bool secure,
+      void Function(String)? onError) {
     _webSocket = createChannel('db/listen', secure);
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
       onChanged();
     }, onError: (e) {
-
+      onError?.call(e);
     }).onDone(() {
       if (!_closeByClient) {
         Timer(Duration(milliseconds: _reconnectionDelay), () {
-          _create(onChanged, secure);
+          _create(onChanged, secure, onError);
         });
       }
     });
@@ -196,8 +201,8 @@ class DataListener {
 
   String _toJson() {
     return jsonEncode({
-      recycleAppWsKey: Geno.appSignature,
-      gConnectionId: Geno.auth.user!.uid,
+      gAppWsKey: Geno.appWsSignature,
+      gConnectionId: Geno.connectionId,
       gTable: table,
       gRowId: rowId,
     });
