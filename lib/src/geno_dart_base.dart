@@ -187,7 +187,11 @@ class DataListener {
     _webSocket = createChannel('db/listen', secure);
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
-      onChanged();
+      if(event != 'close') {
+        onChanged();
+      } else {
+        dispose();
+      }
     }, onError: (e) {
       onError?.call(e);
     }).onDone(() {
