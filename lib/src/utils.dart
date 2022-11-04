@@ -21,7 +21,7 @@ class Preferences {
   ///Get an instance of preferences
   static Future<Preferences> getInstance() async {
     if(!_initialized) {
-      await Directory(Geno.appPrivateDirectory).create(recursive: true);
+      //await Directory(Geno.appPrivateDirectory).create(recursive: true);
       _preferenceFilePath = join(Geno.appPrivateDirectory, preferenceFile);
       File gP = File(_preferenceFilePath);
       bool exist = await gP.exists();
@@ -185,7 +185,6 @@ class Cache {
     Cache._instances.remove(cacheFilePath);
   }
 }
-
 
 class Obfuscator {
 
