@@ -169,10 +169,10 @@ class DataListener {
 
   bool _closeByClient = false;
   String table;
-  String? rowId;
+  String? tag;
   late int _reconnectionDelay;
 
-  DataListener({required this.table, this.rowId});
+  DataListener({required this.table, this.tag});
 
   void listen(void Function() onChanged, {int reconnectionDelay = 1000,
     bool secure = true,
@@ -211,7 +211,7 @@ class DataListener {
       gAppWsKey: Geno.appWsSignature,
       gConnectionId: Geno.connectionId,
       gTable: table,
-      gRowId: rowId,
+      gRowId: tag,
     });
   }
 

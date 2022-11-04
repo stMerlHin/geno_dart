@@ -41,7 +41,7 @@ void main() async {
           secure: false
         );
 
-        DataListener(table: 'company', rowId: 'wi').listen(() {
+        DataListener(table: 'company', tag: 'wi').listen(() {
           print('changed');
         },
             onError: (e) {
