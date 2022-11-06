@@ -4,11 +4,12 @@
 
 const String gLocalhost = 'localhost';
 const String gPort = '8080';
-const String gConnectionId = 'connectionId';
+const String gConnectionId = 'connection_id';
 const String gTable = 'table';
 const String gValues = 'values';
-const String recycleAppWsKey = 'appWsKey';
+const String gAppWsKey = 'app_ws_key';
 const String gSql = 'sql';
+const String gRowId = 'row_id';
 const String gAppSignature = 'app_signature';
 const String gUser = 'g_user';
 const String gUserPassword = 'g_user_password';
