@@ -22,7 +22,10 @@ void main() async {
         // } else {
         //   print('unauthenticated user');
         // }
-        DataListener l = DataListener(table: 'company');
+        DataListener l = DataListener(
+            table: 'company',
+          tag: '127af730-5b60-11ed-8f30-152c420dff9f'
+        );
         l.listen(() {
           print('changed');
         },
@@ -32,23 +35,23 @@ void main() async {
             secure: false
         );
 
-        DataListener(table: 'company').listen(() {
-          print('changed');
-        },
-            onError: (e) {
-          print('On ERROR 2');
-        },
-          secure: false
-        );
-
-        DataListener(table: 'company', tag: 'wi').listen(() {
-          print('changed');
-        },
-            onError: (e) {
-          print('On ERROR 3');
-            },
-            secure: false
-        );
+        // DataListener(table: 'company').listen(() {
+        //   print('changed');
+        // },
+        //     onError: (e) {
+        //   print('On ERROR 2');
+        // },
+        //   secure: false
+        // );
+        //
+        // DataListener(table: 'company', tag: 'wi').listen(() {
+        //   print('changed');
+        // },
+        //     onError: (e) {
+        //   print('On ERROR 3');
+        //     },
+        //     secure: false
+        // );
         //print(auth.user.toString());
         // auth.loginWithEmailAndPassword(
         //   secure: false,
