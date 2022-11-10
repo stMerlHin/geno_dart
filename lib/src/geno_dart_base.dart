@@ -198,8 +198,10 @@ class DataListener {
         //At this point, change can be made on the database during
         //the reconnection phase so we call [onChanged] to make user
         //do something once the connection is reestablished
-      } else if(event == 'registered' && refresh) {
-        onChanged();
+      } else if(event == 'registered') {
+        if(refresh) {
+          onChanged();
+        }
       } else {
         //Change happens on the database
         onChanged();
