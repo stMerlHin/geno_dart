@@ -185,14 +185,25 @@ class DataListener {
 
   void _create(void Function() onChanged, bool secure,
       void Function(String)? onError,
-      void Function()? onDispose) {
+      void Function()? onDispose, [bool refresh = false]) {
     _webSocket = createChannel('db/listen', secure);
     _webSocket.sink.add(_toJson());
     _webSocket.stream.listen((event) {
+      //The connection have be close by the server due to duplicate
+      //listening
       if(event == 'close') {
         dispose();
         onDispose?.call();
+        //The connection have be closed due to connection issue
+        //At this point, change can be made on the database during
+        //the reconnection phase so we call [onChanged] to make user
+        //do something once the connection is reestablished
+      } else if(event == 'registered') {
+        if(refresh) {
+          onChanged();
+        }
       } else {
+        //Change happens on the database
         onChanged();
       }
     }, onError: (e) {
@@ -200,7 +211,7 @@ class DataListener {
     }).onDone(() {
       if (!_closeByClient) {
         Timer(Duration(milliseconds: _reconnectionDelay), () {
-          _create(onChanged, secure, onError, onDispose);
+          _create(onChanged, secure, onError, onDispose, true);
         });
       }
     });
@@ -211,10 +222,11 @@ class DataListener {
       gAppWsKey: Geno.appWsSignature,
       gConnectionId: Geno.connectionId,
       gTable: table,
-      gRowId: tag,
+      gTag: tag,
     });
   }
 
+  //Dispose the listener
   void dispose() {
     _closeByClient = true;
     _webSocket.sink.close();
