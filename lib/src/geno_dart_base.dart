@@ -176,11 +176,12 @@ class DataListener {
 
   void listen(void Function() onChanged, {int reconnectionDelay = 1000,
     bool secure = true,
+  bool refresh = false,
     void Function(String)? onError,
     void Function()? onDispose,
   }) {
     _reconnectionDelay = reconnectionDelay;
-    _create(onChanged, secure, onError, onDispose);
+    _create(onChanged, secure, onError, onDispose, refresh);
   }
 
   void _create(void Function() onChanged, bool secure,
