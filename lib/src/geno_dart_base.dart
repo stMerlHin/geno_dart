@@ -146,6 +146,11 @@ class Geno {
     '$unsecureBaseUrl' 'auth/phone/change';
   }
 
+  static String getSubscriptionUrl([bool secured = true]) {
+    return secured ? '$baseUrl' 'subscribe' :
+    '$unsecureBaseUrl' 'subscribe';
+  }
+
   ///The host which runs the http server
   String get host => _gHost;
 
