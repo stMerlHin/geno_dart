@@ -157,6 +157,36 @@ class Geno {
   ///The port of the http server
   String get port => _gPort;
 
+  static Future<void> subscribeUser({
+    required Function(String) onSuccess,
+    required Function(String) onError,
+    required Map<String, dynamic> data,
+    bool secure = true,
+  }) async {
+
+    final url = Uri.parse('${secure ? Geno.baseUrl :
+    Geno.unsecureBaseUrl}request');
+
+    try {
+      final response = await http.post(
+          url,
+          headers: {
+            'Content-type': 'application/json',
+            //'origin': 'http://localhost'
+          },
+          body: json.encode(data)
+      );
+
+      if (response.statusCode == 200) {
+          onSuccess(response.body.toString());
+      } else {
+        onError(response.body.toString());
+      }
+    } catch (e)  {
+      onError(e.toString());
+    }
+  }
+
 }
 
 ///  DataListener tableListener = TableListener(table: 'student');
@@ -361,7 +391,7 @@ class GDirectRequest {
     });
   }
 
-  exec({
+  Future<void> exec({
     required Function(Result) onSuccess,
     required Function(String) onError,
     bool secure = true,
