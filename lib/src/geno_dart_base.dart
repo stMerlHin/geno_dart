@@ -165,7 +165,7 @@ class Geno {
   }) async {
 
     final url = Uri.parse('${secure ? Geno.baseUrl :
-    Geno.unsecureBaseUrl}request');
+    Geno.unsecureBaseUrl}subscribe');
 
     try {
       final response = await http.post(
